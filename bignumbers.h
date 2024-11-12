@@ -55,6 +55,13 @@ private:
     friend std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs);
     friend std::istream& operator>>(std::istream& lhs, BigInteger& rhs);
 
+    friend bool operator==(const BigInteger& lhs, const BigInteger& rhs);
+    friend bool operator!=(const BigInteger& lhs, const BigInteger& rhs);
+    friend bool operator<(const BigInteger& lhs, const BigInteger& rhs);
+    friend bool operator>(const BigInteger& lhs, const BigInteger& rhs);
+    friend bool operator<=(const BigInteger& lhs, const BigInteger& rhs);
+    friend bool operator>=(const BigInteger& lhs, const BigInteger& rhs);
+
     // assistants
     void removeLeadingZeros();
 };
@@ -144,12 +151,53 @@ inline BigInteger operator%(BigInteger lhs, const BigInteger& rhs);
 
 /* Logical operators */
 
-inline bool operator==(const BigInteger& lhs, const BigInteger& rhs);
-inline bool operator!=(const BigInteger& lhs, const BigInteger& rhs);
-inline bool operator<(const BigInteger& lhs, const BigInteger& rhs);
-inline bool operator>(const BigInteger& lhs, const BigInteger& rhs);
-inline bool operator<=(const BigInteger& lhs, const BigInteger& rhs);
-inline bool operator>=(const BigInteger& lhs, const BigInteger& rhs);
+inline bool operator==(const BigInteger& lhs, const BigInteger& rhs)
+{
+    return lhs.sign == rhs.sign && lhs.value == rhs.value;
+}
+
+inline bool operator!=(const BigInteger& lhs, const BigInteger& rhs)
+{
+    return !(lhs == rhs);
+}
+
+inline bool operator<(const BigInteger& lhs, const BigInteger& rhs)
+{
+    if (lhs.sign != rhs.sign)
+    {
+        return !lhs.sign;
+    }
+
+    if (lhs.sign)
+    {
+        if (lhs.value.size() != rhs.value.size())
+        {
+            return lhs.value.size() < rhs.value.size();
+        }
+        return lhs.value < rhs.value;
+    }
+
+    if (lhs.value.size() != rhs.value.size())
+    {
+        return lhs.value.size() > rhs.value.size();
+    }
+    return lhs.value > rhs.value;
+}
+
+inline bool operator>(const BigInteger& lhs, const BigInteger& rhs)
+{
+    return rhs < lhs;
+}
+
+inline bool operator<=(const BigInteger& lhs, const BigInteger& rhs)
+{
+    return !(rhs < lhs);
+}
+
+inline bool operator>=(const BigInteger& lhs, const BigInteger& rhs)
+{
+    return !(lhs < rhs);
+}
 
 /* Friends */
 
