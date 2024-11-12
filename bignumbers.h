@@ -102,6 +102,24 @@ inline BigInteger& BigInteger::operator=(const BigInteger& rhs) {
     return *this;
 }
 
+/* Unary operators */
+inline const BigInteger& BigInteger::operator+() const
+{
+    return *this;
+}
+
+inline BigInteger BigInteger::operator-() const
+{
+    BigInteger result = *this;
+
+    if (result.value != "0")
+    {
+        result.sign = (sign == '+') ? '-' : '+';
+    }
+
+    return result;
+}
+
 /* Assistants */
 
 inline void BigInteger::removeLeadingZeros()
