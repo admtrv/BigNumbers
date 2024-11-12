@@ -12,7 +12,9 @@
 #define SUPPORT_MORE_OPS 1
 #define SUPPORT_EVAL 1
 
-/* BigInteger */
+/*
+ * BigInteger
+ */
 
 class BigInteger
 {
@@ -21,12 +23,15 @@ public:
     BigInteger();
     explicit BigInteger(int64_t n);
     explicit BigInteger(const std::string& str);
+
     // copy
     BigInteger(const BigInteger& other);
     BigInteger& operator=(const BigInteger& rhs);
+
     // unary operators
     const BigInteger& operator+() const;
     BigInteger operator-() const;
+
     // binary arithmetics operators
     BigInteger& operator+=(const BigInteger& rhs);
     BigInteger& operator-=(const BigInteger& rhs);
@@ -34,12 +39,15 @@ public:
     BigInteger& operator/=(const BigInteger& rhs);
     BigInteger& operator%=(const BigInteger& rhs);
 
+    // more operators
     double sqrt() const;
 #if SUPPORT_MORE_OPS == 1
     BigInteger isqrt() const;
     bool is_prime(size_t k) const;
 #endif
+
 private:
+    // realization
     std::string value;
     bool sign;
 
@@ -108,6 +116,7 @@ inline BigInteger& BigInteger::operator=(const BigInteger& rhs) {
 }
 
 /* Unary operators */
+
 inline const BigInteger& BigInteger::operator+() const
 {
     return *this;
@@ -125,28 +134,15 @@ inline BigInteger BigInteger::operator-() const
     return result;
 }
 
-/* Assistants */
-
-inline void BigInteger::removeLeadingZeros()
-{
-    size_t pos = value.find_first_not_of('0');
-
-    if (pos == std::string::npos)
-    {
-        value = "0";
-        sign = true;
-    }
-    else
-    {
-        value.erase(0, pos);
-    }
-}
+/* Binary arithmetics operators */
 
 inline BigInteger operator+(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator-(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator*(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator/(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator%(BigInteger lhs, const BigInteger& rhs);
+
+/* Logical operators */
 
 inline bool operator==(const BigInteger& lhs, const BigInteger& rhs);
 inline bool operator!=(const BigInteger& lhs, const BigInteger& rhs);
@@ -210,7 +206,32 @@ inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
 }
 #endif
 
-/* BigRational */
+/* More operators */
+
+#if SUPPORT_EVAL == 1
+inline BigInteger eval(const std::string&);
+#endif
+
+/* Assistants */
+
+inline void BigInteger::removeLeadingZeros()
+{
+    size_t pos = value.find_first_not_of('0');
+
+    if (pos == std::string::npos)
+    {
+        value = "0";
+        sign = true;
+    }
+    else
+    {
+        value.erase(0, pos);
+    }
+}
+
+/*
+ * BigRational
+ */
 
 class BigRational
 {
@@ -255,8 +276,4 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs);
 
 #if SUPPORT_IFSTREAM == 1
 inline std::istream& operator>>(std::istream& lhs, BigRational& rhs);
-#endif
-
-#if SUPPORT_EVAL == 1
-inline BigInteger eval(const std::string&);
 #endif
