@@ -41,7 +41,7 @@ public:
 #endif
 private:
     std::string value;
-    char sign;
+    bool sign;
 
     // friends
     friend std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs);
@@ -53,12 +53,12 @@ private:
 
 /* Constructors */
 
-inline BigInteger::BigInteger() : value("0"), sign('+') {}
+inline BigInteger::BigInteger() : value("0"), sign(true) {}
 
 inline BigInteger::BigInteger(int64_t n)
 {
     value = std::to_string(std::abs(n));
-    sign = (n < 0) ? '-' : '+';
+    sign = (n >= 0);
 }
 
 inline BigInteger::BigInteger(const std::string& str)
@@ -69,14 +69,19 @@ inline BigInteger::BigInteger(const std::string& str)
     }
 
     size_t pos = 0;
-    if (str[0] == '-' || str[0] == '+')
+
+    if (str[0] == '-')
     {
-        sign = str[0];
+        sign = false;
         pos = 1;
     }
     else
     {
-        sign = '+';
+        if (str[0] == '+')
+        {
+            pos = 1;
+        }
+        sign = true;
     }
 
     value = str.substr(pos);
@@ -114,7 +119,7 @@ inline BigInteger BigInteger::operator-() const
 
     if (result.value != "0")
     {
-        result.sign = (sign == '+') ? '-' : '+';
+        result.sign = !sign;
     }
 
     return result;
@@ -129,7 +134,7 @@ inline void BigInteger::removeLeadingZeros()
     if (pos == std::string::npos)
     {
         value = "0";
-        sign = '+';
+        sign = true;
     }
     else
     {
@@ -154,7 +159,7 @@ inline bool operator>=(const BigInteger& lhs, const BigInteger& rhs);
 
 inline std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs)
 {
-    if (rhs.sign == '-')
+    if (!rhs.sign)
     {
         lhs << '-';
     }
@@ -177,14 +182,18 @@ inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
     }
 
     size_t pos = 0;
-    if (input[0] == '-' || input[0] == '+')
+    if (input[0] == '-')
     {
-        rhs.sign = input[0];
+        rhs.sign = false;
         pos = 1;
     }
     else
     {
-        rhs.sign = '+';
+        if (input[0] == '+')
+        {
+            pos = 1;
+        }
+        rhs.sign = true;
     }
 
     rhs.value = input.substr(pos);
