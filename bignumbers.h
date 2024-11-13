@@ -64,6 +64,8 @@ private:
 
     // assistants
     void removeLeadingZeros();
+    static std::string subtractStrings(const std::string& a, const std::string& b);
+    static std::string addStrings(const std::string& a, const std::string& b);
 };
 
 /* Constructors */
@@ -143,8 +145,72 @@ inline BigInteger BigInteger::operator-() const
 
 /* Binary arithmetics operators */
 
-inline BigInteger operator+(BigInteger lhs, const BigInteger& rhs);
-inline BigInteger operator-(BigInteger lhs, const BigInteger& rhs);
+inline BigInteger& BigInteger::operator+=(const BigInteger& rhs) {
+    if (sign == rhs.sign)
+    {
+        value = addStrings(value, rhs.value);
+    }
+    else
+    {
+        if (value == rhs.value)
+        {
+            value = "0";
+            sign = true;
+        }
+        else if (value.size() > rhs.value.size() || (value.size() == rhs.value.size() && value > rhs.value))
+        {
+            value = subtractStrings(value, rhs.value);
+        }
+        else
+        {
+            value = subtractStrings(rhs.value, value);
+            sign = rhs.sign;
+        }
+    }
+
+    removeLeadingZeros();
+    return *this;
+}
+
+inline BigInteger& BigInteger::operator-=(const BigInteger& rhs) {
+    if (sign != rhs.sign)
+    {
+        value = addStrings(value, rhs.value);
+    }
+    else
+    {
+        if (value == rhs.value)
+        {
+            value = "0";
+            sign = true;
+        }
+        else if (value.size() > rhs.value.size() || (value.size() == rhs.value.size() && value > rhs.value))
+        {
+            value = subtractStrings(value, rhs.value);
+        }
+        else
+        {
+            value = subtractStrings(rhs.value, value);
+            sign = !sign;
+        }
+    }
+
+    removeLeadingZeros();
+    return *this;
+}
+
+inline BigInteger operator+(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs += rhs;
+    return lhs;
+}
+
+inline BigInteger operator-(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs -= rhs;
+    return lhs;
+}
+
 inline BigInteger operator*(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator/(BigInteger lhs, const BigInteger& rhs);
 inline BigInteger operator%(BigInteger lhs, const BigInteger& rhs);
@@ -275,6 +341,62 @@ inline void BigInteger::removeLeadingZeros()
     {
         value.erase(0, pos);
     }
+}
+
+inline std::string BigInteger::addStrings(const std::string& a, const std::string& b)
+{
+    std::string result;
+
+    int carry = 0;
+    int sum = 0;
+
+    int a_len = a.size();
+    int b_len = b.size();
+
+    for (int i = 0; i < std::max(a_len, b_len) || carry; i++)
+    {
+        int digitA = i < a_len ? a[a_len - i - 1] - '0' : 0;
+        int digitB = i < b_len ? b[b_len - i - 1] - '0' : 0;
+        sum = digitA + digitB + carry;
+        result += (sum % 10) + '0';
+        carry = sum / 10;
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+inline std::string BigInteger::subtractStrings(const std::string& a, const std::string& b)
+{
+    std::string result;
+
+    int borrow = 0;
+    int difference = 0;
+
+    int a_len = a.size();
+    int b_len = b.size();
+
+    for (int i = 0; i < a_len; i++)
+    {
+        int digitA = a[a_len - i - 1] - '0';
+        int digitB = i < b_len ? b[b_len - i - 1] - '0' : 0;
+        difference = digitA - digitB - borrow;
+
+        if (difference < 0)
+        {
+            difference += 10;
+            borrow = 1;
+        }
+        else
+        {
+            borrow = 0;
+        }
+
+        result += difference + '0';
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }
 
 /*
