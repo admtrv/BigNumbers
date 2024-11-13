@@ -66,6 +66,7 @@ private:
     void removeLeadingZeros();
     static std::string subtractStrings(const std::string& a, const std::string& b);
     static std::string addStrings(const std::string& a, const std::string& b);
+    void divisionAndModulus(const BigInteger& rhs, BigInteger& quotient, BigInteger& remainder) const;
 };
 
 /* Constructors */
@@ -172,6 +173,12 @@ inline BigInteger& BigInteger::operator+=(const BigInteger& rhs) {
     return *this;
 }
 
+inline BigInteger operator+(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs += rhs;
+    return lhs;
+}
+
 inline BigInteger& BigInteger::operator-=(const BigInteger& rhs) {
     if (sign != rhs.sign)
     {
@@ -199,21 +206,78 @@ inline BigInteger& BigInteger::operator-=(const BigInteger& rhs) {
     return *this;
 }
 
-inline BigInteger operator+(BigInteger lhs, const BigInteger& rhs)
-{
-    lhs += rhs;
-    return lhs;
-}
-
 inline BigInteger operator-(BigInteger lhs, const BigInteger& rhs)
 {
     lhs -= rhs;
     return lhs;
 }
 
-inline BigInteger operator*(BigInteger lhs, const BigInteger& rhs);
-inline BigInteger operator/(BigInteger lhs, const BigInteger& rhs);
-inline BigInteger operator%(BigInteger lhs, const BigInteger& rhs);
+inline BigInteger& BigInteger::operator*=(const BigInteger& rhs) {
+    if (value == "0" || rhs.value == "0")
+    {
+        value = "0";
+        sign = true;
+        return *this;
+    }
+
+    sign = (sign == rhs.sign);
+
+    std::string result(value.size() + rhs.value.size(), '0');
+
+    for (int i = value.size() - 1; i >= 0; i--)
+    {
+        int carry = 0;
+        int num1 = value[i] - '0';
+        for (int j = rhs.value.size() - 1; j >= 0; j--)
+        {
+            int num2 = rhs.value[j] - '0';
+            int sum = (result[i + j + 1] - '0') + num1 * num2 + carry;
+            carry = sum / 10;
+            result[i + j + 1] = (sum % 10) + '0';
+        }
+        result[i] += carry;
+    }
+
+    value = result;
+    removeLeadingZeros();
+    return *this;
+}
+
+inline BigInteger operator*(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs *= rhs;
+    return lhs;
+}
+
+inline BigInteger& BigInteger::operator/=(const BigInteger& rhs) {
+    BigInteger quotient;
+    BigInteger remainder;
+    divisionAndModulus(rhs, quotient, remainder);
+
+    *this = quotient;
+    return *this;
+}
+
+inline BigInteger operator/(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs /= rhs;
+    return lhs;
+}
+
+inline BigInteger& BigInteger::operator%=(const BigInteger& rhs) {
+    BigInteger quotient;
+    BigInteger remainder;
+    divisionAndModulus(rhs, quotient, remainder);
+
+    *this = remainder;
+    return *this;
+}
+
+inline BigInteger operator%(BigInteger lhs, const BigInteger& rhs)
+{
+    lhs %= rhs;
+    return lhs;
+}
 
 /* Logical operators */
 
@@ -397,6 +461,59 @@ inline std::string BigInteger::subtractStrings(const std::string& a, const std::
 
     std::reverse(result.begin(), result.end());
     return result;
+}
+
+inline void BigInteger::divisionAndModulus(const BigInteger& rhs, BigInteger& quotient, BigInteger& remainder) const
+{
+    if (rhs.value == "0")
+    {
+        throw std::logic_error("zero division");
+    }
+
+    if (value == "0")
+    {
+        quotient = BigInteger(0);
+        remainder = BigInteger(0);
+        return;
+    }
+
+    BigInteger dividend = *this;
+    dividend.sign = true;
+
+    BigInteger divisor = rhs;
+    divisor.sign = true;
+
+    if (dividend < divisor)
+    {
+        quotient = BigInteger(0);
+        remainder = dividend;
+        return;
+    }
+
+    std::string result;
+    BigInteger current;
+
+    for (char i : dividend.value)
+    {
+        current.value += i;
+        current.removeLeadingZeros();
+
+        int count = 0;
+        while (current >= divisor)
+        {
+            current -= divisor;
+            ++count;
+        }
+        result += (count + '0');
+    }
+
+    quotient.value = result;
+    quotient.sign = (sign == rhs.sign);
+    quotient.removeLeadingZeros();
+
+    remainder = current;
+    remainder.sign = sign;
+    remainder.removeLeadingZeros();
 }
 
 /*

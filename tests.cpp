@@ -255,6 +255,93 @@ private:
             assert(result == BigInteger("999999999999999999999999999999"));
         }
 
+        // Multiplication
+        {
+            BigInteger num1("12345");
+            BigInteger num2("6789");
+            BigInteger result = num1 * num2;
+            assert(result == BigInteger("83810205"));
+        }
+
+        {
+            BigInteger num1("987654321");
+            BigInteger num2("123456789");
+            BigInteger result = num1 * num2;
+            assert(result == BigInteger("121932631112635269"));
+        }
+
+        {
+            BigInteger num1("-123456789");
+            BigInteger num2("987654321");
+            BigInteger result = num1 * num2;
+            assert(result == BigInteger("-121932631112635269"));
+        }
+
+        {
+            BigInteger num1("1000000000000000000");
+            BigInteger num2("0");
+            BigInteger result = num1 * num2;
+            assert(result == BigInteger("0"));
+        }
+
+        // Division
+        {
+            BigInteger num1("121932631112635269");
+            BigInteger num2("987654321");
+            BigInteger result = num1 / num2;
+            assert(result == BigInteger("123456789"));
+        }
+
+        {
+            BigInteger num1("123456789");
+            BigInteger num2("987654321");
+            BigInteger result = num1 / num2;
+            assert(result == BigInteger("0"));
+        }
+
+        {
+            BigInteger num1("-121932631112635269");
+            BigInteger num2("987654321");
+            BigInteger result = num1 / num2;
+            assert(result == BigInteger("-123456789"));
+        }
+
+        {
+            BigInteger num1("987654321");
+            BigInteger num2("1");
+            BigInteger result = num1 / num2;
+            assert(result == BigInteger("987654321"));
+        }
+
+        // Modulus
+        {
+            BigInteger num1("121932631112635269");
+            BigInteger num2("987654321");
+            BigInteger result = num1 % num2;
+            assert(result == BigInteger("0"));
+        }
+
+        {
+            BigInteger num1("123456789");
+            BigInteger num2("10000");
+            BigInteger result = num1 % num2;
+            assert(result == BigInteger("6789"));
+        }
+
+        {
+            BigInteger num1("987654321");
+            BigInteger num2("123456789");
+            BigInteger result = num1 % num2;
+            assert(result == BigInteger("9"));
+        }
+
+        {
+            BigInteger num1("123456789");
+            BigInteger num2("987654321");
+            BigInteger result = num1 % num2;
+            assert(result == BigInteger("123456789"));
+        }
+
         std::cout << "Arithmetic operator tests passed!" << std::endl;
     }
 };
