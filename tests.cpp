@@ -32,6 +32,9 @@ public:
 
         testMoreOperators();
         std::cout << std::endl;
+
+        testEvaluation();
+        std::cout << std::endl;
         
         std::cout << "All tests passed successfully!" << std::endl;
     }
@@ -444,6 +447,65 @@ private:
         }
 
         std::cout << "More operators tests passed!" << std::endl;
+    }
+
+    static void testEvaluation()
+    {
+        std::cout << "Running evaluation tests..." << std::endl;
+
+        {
+            std::string json = R"(
+            {
+                "op":"+",
+                "left": 123,
+                "right": 456
+            }
+            )";
+            BigInteger result = eval(json);
+            assert(result == BigInteger(123 + 456));
+        }
+
+        {
+            std::string json = R"(
+            {
+                "op":"+",
+                "left": 123,
+                "right": {
+                    "op":"*",
+                    "left": "12345678901234567890",
+                    "right": {
+                        "op":"%",
+                        "left":"34",
+                        "right":1
+                    }
+                }
+            }
+            )";
+            BigInteger result = eval(json);
+            assert(result == BigInteger(123 + (12345678901234567890 * (34 % 1))));
+        }
+
+        {
+            std::string json = R"(
+            {
+                "op":"+",
+                "left": {
+                    "op":"-",
+                    "left": "1000",
+                    "right": "200"
+                },
+                "right": {
+                    "op":"/",
+                    "left": "123456",
+                    "right": "123"
+                }
+            }
+            )";
+            BigInteger result = eval(json);
+            assert(result == BigInteger(1000 - 200 + (123456 / 123)));
+        }
+
+        std::cout << "Evaluation tests passed!" << std::endl;
     }
 };
 

@@ -12,7 +12,7 @@
 
 #define SUPPORT_IFSTREAM 1
 #define SUPPORT_MORE_OPS 1
-#define SUPPORT_EVAL 0
+#define SUPPORT_EVAL 1
 
 /*
  * BigInteger
@@ -508,7 +508,164 @@ inline bool BigInteger::is_prime(size_t k) const {
 }
 
 #if SUPPORT_EVAL == 1
-inline BigInteger eval(const std::string&);
+
+inline std::string removeSpaces(const std::string& string)  // string = "{ \"op\" : \"+\", \"left\" : 123, \"right\" : 456 }"
+{
+    std::string result;
+
+    for (char ch : string)
+    {
+        if (!std::isspace(ch))
+        {
+            result += ch;
+        }
+    }
+    return result;  // result = "{\"op\":\"+\",\"left\":123,\"right\":456}"
+}
+
+
+inline std::string findValue(const std::string& json, const std::string& key, size_t& pos)
+{
+    size_t key_pos = json.find("\"" + key + "\":", pos);
+
+    if (key_pos == std::string::npos)
+    {
+        throw std::invalid_argument(key);
+    }
+
+    size_t value_pos = key_pos + key.length() + 3;
+
+    if (json[value_pos] == '{')
+    {
+        // object
+        size_t brace_count = 1;
+        size_t end_pos = value_pos + 1;
+        while (brace_count > 0 && end_pos < json.length())
+        {
+            if (json[end_pos] == '{')
+            {
+                brace_count += 1;
+            }
+            else if (json[end_pos] == '}')
+            {
+                brace_count-=1;
+            }
+            end_pos+=1;
+        }
+        if (brace_count != 0)
+        {
+            throw std::invalid_argument("end brace");
+        }
+
+        pos = end_pos;
+        return json.substr(value_pos, end_pos - value_pos);
+    }
+    else if (json[value_pos] == '"')
+    {
+        // string
+        size_t end_pos = json.find('"', value_pos + 1);
+
+        if (end_pos == std::string::npos)
+        {
+            throw std::invalid_argument("end quotation mark");
+        }
+
+        pos = end_pos + 1;
+        return json.substr(value_pos + 1, end_pos - value_pos - 1);
+    }
+    else
+    {
+        // number
+        size_t end_pos = value_pos;
+        while (end_pos < json.length() && (std::isdigit(json[end_pos]) || json[end_pos] == '-' || json[end_pos] == '.'))
+        {
+            end_pos +=1 ;
+        }
+
+        pos = end_pos;
+        return json.substr(value_pos, end_pos - value_pos);
+    }
+}
+
+inline BigInteger evaluate(const std::string& json)
+{
+    std::string json_format = removeSpaces(json);
+
+    if (json_format.empty())
+    {
+        throw std::invalid_argument("empty json");
+    }
+
+    if (json_format[0] != '{')
+    {
+        // string or number
+        if (json_format[0] == '"')
+        {
+            // string
+            if (json_format.back() != '"')
+            {
+                throw std::invalid_argument("end string");
+            }
+
+            std::string value = json_format.substr(1, json_format.length() - 2);
+            return BigInteger(value);
+        }
+        else
+        {
+            // number
+            size_t dot_pos = json_format.find('.'); // remove decimal part
+
+            std::string integer_part = (dot_pos == std::string::npos) ? json_format : json_format.substr(0, dot_pos);
+            return BigInteger(integer_part);
+        }
+    }
+    // object with "op", "left", "rigth" in {}
+
+    size_t pos = 1;
+
+    // op
+    std::string op = findValue(json_format, "op", pos);
+
+    // left
+    std::string left_str = findValue(json_format, "left", pos);
+    BigInteger left_value = evaluate(left_str);
+
+    // right
+    std::string right_str = findValue(json_format, "right", pos);
+    BigInteger right_value = evaluate(right_str);
+
+    if (op == "+")
+    {
+        return left_value + right_value;
+    }
+    else if (op == "-")
+    {
+        return left_value - right_value;
+    }
+    else if (op == "*")
+    {
+        return left_value * right_value;
+    }
+    else if (op == "/")
+    {
+        return left_value / right_value;
+    }
+    else if (op == "%")
+    {
+        return left_value % right_value;
+    }
+    else
+    {
+        throw std::invalid_argument("unknown operator");
+    }
+}
+
+
+inline BigInteger eval(const std::string& input)
+{
+    return evaluate(input);
+}
+
 #endif
 
 /* Assistants */
