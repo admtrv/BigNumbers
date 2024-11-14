@@ -29,6 +29,9 @@ public:
 
         testArithmeticOperators();
         std::cout << std::endl;
+
+        testMoreOperators();
+        std::cout << std::endl;
         
         std::cout << "All tests passed successfully!" << std::endl;
     }
@@ -343,6 +346,104 @@ private:
         }
 
         std::cout << "Arithmetic operator tests passed!" << std::endl;
+    }
+
+    static void testMoreOperators()
+    {
+        std::cout << "Running more operators tests..." << std::endl;
+
+        // sqrt()
+        {
+            BigInteger num("123456789");
+            double result = num.sqrt();
+            assert(std::abs(result - std::sqrt(123456789.0)) < 1e-6);
+        }
+
+        {
+            BigInteger num("-123456789");
+            try {
+                double result = num.sqrt();
+                assert(false); // Should not reach here
+            } catch (const std::exception& e) {
+                assert(std::string(e.what()) == "negative number");
+            }
+        }
+
+        // isqrt()
+        {
+            BigInteger num("144");
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger("12"));
+        }
+
+        {
+            BigInteger num("150");
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger("12"));
+        }
+
+        {
+            BigInteger num("0");
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger("0"));
+        }
+
+        {
+            BigInteger num("1");
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger("1"));
+        }
+
+        {
+            BigInteger num("-16");
+            try {
+                BigInteger result = num.isqrt();
+                assert(false); // Should not reach here
+            } catch (const std::exception& e) {
+                assert(std::string(e.what()) == "negative number");
+            }
+        }
+
+        // is_prime()
+        {
+            BigInteger num2("2");
+            assert(num2.is_prime(5) == true);
+
+            BigInteger num3("3");
+            assert(num3.is_prime(5) == true);
+
+            BigInteger num5("5");
+            assert(num5.is_prime(5) == true);
+
+            BigInteger num7("7");
+            assert(num7.is_prime(5) == true);
+
+            BigInteger num4("4");
+            assert(num4.is_prime(5) == false);
+
+            BigInteger num6("6");
+            assert(num6.is_prime(5) == false);
+
+            BigInteger num11("104729");
+            assert(num11.is_prime(5) == true);
+
+            BigInteger num12("104730");
+            assert(num12.is_prime(5) == false);
+
+            BigInteger numNeg("-7");
+            assert(numNeg.is_prime(5) == false);
+
+            BigInteger numZero("0");
+            assert(numZero.is_prime(5) == false);
+
+            BigInteger numOne("1");
+            assert(numOne.is_prime(5) == false);
+
+            BigInteger carmichael("561");
+            assert(carmichael.is_prime(5) == false);
+        }
+
+        std::cout << "More operators tests passed!" << std::endl;
     }
 };
 

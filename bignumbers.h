@@ -7,10 +7,12 @@
 #include <string>
 #include <cstdint>
 #include <stdexcept>
+#include <valarray>
+#include <random>
 
 #define SUPPORT_IFSTREAM 1
 #define SUPPORT_MORE_OPS 1
-#define SUPPORT_EVAL 1
+#define SUPPORT_EVAL 0
 
 /*
  * BigInteger
@@ -40,10 +42,10 @@ public:
     BigInteger& operator%=(const BigInteger& rhs);
 
     // more operators
-    double sqrt() const;
+    [[nodiscard]] double sqrt() const;
 #if SUPPORT_MORE_OPS == 1
-    BigInteger isqrt() const;
-    bool is_prime(size_t k) const;
+    [[nodiscard]] BigInteger isqrt() const;
+    [[nodiscard]] bool is_prime(size_t k) const;
 #endif
 
 private:
@@ -67,6 +69,9 @@ private:
     static std::string subtractStrings(const std::string& a, const std::string& b);
     static std::string addStrings(const std::string& a, const std::string& b);
     void divisionAndModulus(const BigInteger& rhs, BigInteger& quotient, BigInteger& remainder) const;
+    static BigInteger modulusPower(const BigInteger& base, const BigInteger& exponent, const BigInteger& modulus);
+    static BigInteger randomRange(const BigInteger& low, const BigInteger& high);
+    static size_t bitLength(const BigInteger& number) ;
 };
 
 /* Constructors */
@@ -386,6 +391,122 @@ inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
 
 /* More operators */
 
+inline double BigInteger::sqrt() const
+{
+    if (!sign)
+    {
+        throw std::runtime_error("negative number");
+    }
+
+    double result = 0;
+
+    try {
+        result = std::stod(value);
+        if (std::isinf(result))
+        {
+            throw std::runtime_error("large number");
+        }
+    } catch (const std::out_of_range&) {
+        throw std::runtime_error("large number");
+    }
+
+    return std::sqrt(result);
+}
+
+inline BigInteger BigInteger::isqrt() const
+{
+    if (!sign)
+    {
+        throw std::runtime_error("negative number");
+    }
+
+    if (*this == BigInteger(0) || *this == BigInteger(1))
+    {
+        return *this;
+    }
+
+    BigInteger low(1);
+    BigInteger high = *this;
+    BigInteger result(0);
+
+    while (low <= high)
+    {
+        BigInteger mid = (low + high) / BigInteger(2);
+        BigInteger square = mid * mid;
+
+        if (square == *this)
+        {
+            return mid;
+        }
+        else if (square < *this)
+        {
+            low = mid + BigInteger(1);
+            result = mid;
+        }
+        else
+        {
+            high = mid - BigInteger(1);
+        }
+    }
+
+    return result;
+}
+
+inline bool BigInteger::is_prime(size_t k) const {
+    if (*this <= BigInteger(1))
+    {
+        return false;
+    }
+
+    if (*this == BigInteger(2) || *this == BigInteger(3))
+    {
+        return true;
+    }
+
+    if (*this % BigInteger(2) == BigInteger(0))
+    {
+        return false;
+    }
+
+    BigInteger n_minus_one = *this - BigInteger(1);
+    BigInteger d = n_minus_one;
+    size_t s = 0;
+
+
+    while (d % BigInteger(2) == BigInteger(0))
+    {
+        d /= BigInteger(2);
+        s++;
+    }
+
+    for (size_t i = 0; i < k; i++)
+    {
+        BigInteger a = randomRange(BigInteger(2), *this - BigInteger(2));
+        BigInteger x = modulusPower(a, d, *this);
+
+        if (x == BigInteger(1) || x == n_minus_one)
+        {
+            continue;
+        }
+
+        bool is_composite = true;
+
+        for (size_t r = 1; r < s; r++)
+        {
+            x = (x * x) % *this;
+            if (x == n_minus_one)
+            {
+                is_composite = false;
+                break;
+            }
+        }
+
+        if (is_composite) return false;
+    }
+
+    return true;
+}
+
 #if SUPPORT_EVAL == 1
 inline BigInteger eval(const std::string&);
 #endif
@@ -514,6 +635,69 @@ inline void BigInteger::divisionAndModulus(const BigInteger& rhs, BigInteger& qu
     remainder = current;
     remainder.sign = sign;
     remainder.removeLeadingZeros();
+}
+
+inline BigInteger BigInteger::modulusPower(const BigInteger& base, const BigInteger& exponent, const BigInteger& modulus)
+{
+    if (modulus == BigInteger(0))
+    {
+        throw std::invalid_argument("zero modulus");
+    }
+
+    BigInteger result(1);
+    BigInteger b = base % modulus;
+    BigInteger e = exponent;
+
+    while (e > BigInteger(0))
+    {
+        if (e % BigInteger(2) == BigInteger(1))
+        {
+            result = (result * b) % modulus;
+        }
+        e /= BigInteger(2);
+        b = (b * b) % modulus;
+    }
+
+    return result;
+}
+
+inline BigInteger BigInteger::randomRange(const BigInteger& low, const BigInteger& high)
+{
+    if (low > high)
+    {
+        throw std::invalid_argument("low bound");
+    }
+
+    BigInteger range = high - low + BigInteger(1);
+    BigInteger randomNumber;
+
+    std::mt19937_64 rng(std::random_device{}());
+    std::uniform_int_distribution<int> bit_dist(0, 1);
+
+    do
+    {
+        randomNumber = BigInteger(0);
+        for (size_t i = 0; i < bitLength(range); i++)
+        {
+            randomNumber = randomNumber * BigInteger(2) + BigInteger(bit_dist(rng));
+        }
+    }
+    while (randomNumber >= range);
+
+    return low + randomNumber;
+}
+
+inline size_t BigInteger::bitLength(const BigInteger& number)
+{
+    BigInteger temp = number;
+    size_t bits = 0;
+
+    while (temp > BigInteger(0))
+    {
+        temp /= BigInteger(2);
+        bits++;
+    }
+    return bits;
 }
 
 /*
