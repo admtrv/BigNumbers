@@ -39,6 +39,9 @@ public:
         testBigRationalConstructors();
         std::cout << std::endl;
 
+        testBigRationalUnaryOperators();
+        std::cout << std::endl;
+
         testBigRationalLogicalOperators();
         std::cout << std::endl;
         
@@ -555,6 +558,27 @@ private:
         }
 
         std::cout << "BigRational constructor tests passed!" << std::endl;
+    }
+
+    static void testBigRationalUnaryOperators()
+    {
+        std::cout << "Running BigRational unary operator tests..." << std::endl;
+
+        {
+            BigRational r1(-3,4); // -3/4
+            assert((+r1) == BigRational(-3,4));
+
+            BigRational r2 = -r1; // 3/4
+            assert(r2 == BigRational(3,4));
+        }
+
+        {
+            BigRational r3("0", "5");
+            assert((+r3) == r3);
+            assert((-r3) == BigRational(0,1));  // -0/1 == 0/1
+        }
+
+        std::cout << "BigRational unary operator tests passed!" << std::endl;
     }
 
     static void testBigRationalLogicalOperators()

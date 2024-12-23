@@ -944,6 +944,22 @@ inline BigRational& BigRational::operator=(const BigRational& rhs)
     return *this;
 }
 
+/* Unary operators */
+
+inline const BigRational& BigRational::operator+() const
+{
+    return *this;
+}
+
+inline BigRational BigRational::operator-() const
+{
+    BigRational temp(*this);
+    temp.numerator = -temp.numerator;
+    return temp;
+}
+
+/* Binary arithmetics operators */
+
 inline BigRational operator+(BigRational lhs, const BigRational& rhs);
 inline BigRational operator-(BigRational lhs, const BigRational& rhs);
 inline BigRational operator*(BigRational lhs, const BigRational& rhs);
