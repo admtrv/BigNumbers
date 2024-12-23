@@ -10,6 +10,7 @@
 #include <valarray>
 #include <random>
 #include <compare>
+#include <limits>
 
 #define SUPPORT_IFSTREAM 1
 #define SUPPORT_MORE_OPS 1
@@ -24,7 +25,7 @@ class BigInteger
 public:
     // constructors
     BigInteger();
-    explicit BigInteger(int64_t n);
+    BigInteger(int64_t n);
     explicit BigInteger(const std::string& str);
 
     // copy
@@ -57,6 +58,7 @@ private:
     // friends
     friend std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs);
 #if SUPPORT_IFSTREAM == 1
+    friend bool readBigInteger(std::istream& in, BigInteger& x);
     friend std::istream& operator>>(std::istream& lhs, BigInteger& rhs);
 #endif
 
@@ -76,7 +78,7 @@ private:
     void divisionAndModulus(const BigInteger& rhs, BigInteger& quotient, BigInteger& remainder) const;
     static BigInteger modulusPower(const BigInteger& base, const BigInteger& exponent, const BigInteger& modulus);
     static BigInteger randomRange(const BigInteger& low, const BigInteger& high);
-    static size_t bitLength(const BigInteger& number) ;
+    static size_t bitLength(const BigInteger& number);
 };
 
 /* Constructors */
@@ -85,9 +87,24 @@ inline BigInteger::BigInteger() : value("0"), sign(true) {}
 
 inline BigInteger::BigInteger(int64_t n)
 {
-    value = std::to_string(std::abs(n));
-    sign = (n >= 0);
+    if (n == std::numeric_limits<int64_t>::min())
+    {
+        value = "9223372036854775808";
+        sign  = false;
+    }
+    else if (n < 0)
+    {
+        int64_t tmp = -n;
+        value = std::to_string(tmp);
+        sign  = false;
+    }
+    else
+    {
+        value = std::to_string(n);
+        sign  = true;
+    }
 }
+
 
 inline BigInteger::BigInteger(const std::string& str)
 {
@@ -355,42 +372,72 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs)
 
 #if SUPPORT_IFSTREAM == 1
 
+inline bool readBigInteger(std::istream& in, BigInteger& x)
+{
+    x = BigInteger(0);
+
+    std::istream::sentry s(in);
+    if (!s)
+    {
+        in.setstate(std::ios::failbit);
+        return false;
+    }
+
+    bool negative = false;
+    bool found_digit = false;
+
+    std::string digits;
+    digits.reserve(128);
+
+    int c = in.peek();      // sign
+    if (c == '+' || c == '-')
+    {
+        negative = (c == '-');
+        in.ignore(1);
+    }
+
+    while (true)    // digits
+    {
+        c = in.peek();
+
+        if (!std::isdigit(c))
+        {
+            break;
+        }
+
+        digits.push_back(static_cast<char>(c));
+        found_digit = true;
+        in.ignore(1);
+    }
+
+    if (!found_digit)
+    {
+        in.setstate(std::ios::failbit);
+        return false;
+    }
+
+    x.value = digits;
+    x.sign = !negative;
+    x.removeLeadingZeros();
+
+    if (x.value == "0")
+    {
+        x.sign = true;
+    }
+
+    return true;
+}
+
 inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
 {
-    std::string input;
-    lhs >> input;
-
-    if (input.empty())
+    bool success = readBigInteger(lhs, rhs);
+    if (!success)
     {
-        lhs.setstate(std::ios::failbit);
-        return lhs;
-    }
-
-    size_t pos = 0;
-    if (input[0] == '-')
-    {
-        rhs.sign = false;
-        pos = 1;
-    }
-    else
-    {
-        if (input[0] == '+')
+        if (!lhs.fail())
         {
-            pos = 1;
+            lhs.setstate(std::ios::failbit);
         }
-        rhs.sign = true;
     }
-
-    rhs.value = input.substr(pos);
-    if (rhs.value.empty() || rhs.value.find_first_not_of("0123456789") != std::string::npos)
-    {
-        lhs.setstate(std::ios::failbit);
-        rhs = BigInteger(0);
-        return lhs;
-    }
-
-    rhs.removeLeadingZeros();
-
     return lhs;
 }
 
@@ -1127,52 +1174,50 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
 
 inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
 {
-    std::string input;
-    lhs >> input;
+    BigInteger num;     // numerator
 
-    if (input.empty())
+    if (!readBigInteger(lhs, num))
     {
         lhs.setstate(std::ios::failbit);
         return lhs;
     }
 
-    auto slash_pos = input.find('/');
-    if (slash_pos == std::string::npos)
+    std::istream::sentry s(lhs);    // try read '/'
+    if (!s)
     {
-        try {
-            rhs.numerator = BigInteger(input);
-            rhs.denominator = BigInteger(1);
-            rhs.reduce();
-        } catch (...) {
-            lhs.setstate(std::ios::failbit);
-        }
+        rhs.numerator = num;
+        rhs.denominator = BigInteger(1);
+        return lhs;
     }
-    else
-    {
-        std::string left_part  = input.substr(0, slash_pos);
-        std::string right_part = input.substr(slash_pos + 1);
 
-        if (right_part.empty()) // "123/"
+    int c = lhs.peek();
+    if (c == '/')
+    {
+        lhs.ignore(1);
+
+        BigInteger den;     // denominator
+        if (!readBigInteger(lhs, den))
         {
             lhs.setstate(std::ios::failbit);
             return lhs;
         }
 
-        try {
-            rhs.numerator = BigInteger(left_part);
-            rhs.denominator = BigInteger(right_part);
-
-            if (rhs.denominator == BigInteger(0)) // "123/0"
-            {
-                lhs.setstate(std::ios::failbit);
-                return lhs;
-            }
-
-            rhs.reduce();
-        } catch (...) {
+        if (den == BigInteger(0))
+        {
             lhs.setstate(std::ios::failbit);
+            return lhs;
         }
+
+        rhs.numerator = num;
+        rhs.denominator = den;
     }
+    else
+    {
+        rhs.numerator = num;
+        rhs.denominator = BigInteger(1);
+    }
+
+    rhs.reduce();
 
     return lhs;
 }
@@ -1270,18 +1315,26 @@ inline BigInteger BigRational::isqrt() const
 
 /* Assistants */
 
-inline BigInteger BigRational::gcd(const BigInteger& x, const BigInteger& y)
+inline BigInteger BigRational::gcd(const BigInteger& x, const BigInteger& y) // euclidean
 {
     BigInteger a = x;
     BigInteger b = y;
-    if (a < BigInteger(0)) a = -a;
-    if (b < BigInteger(0)) b = -b;
+
+    if (a < BigInteger(0))
+    {
+        a = -a;
+    }
+
+    if (b < BigInteger(0))
+    {
+        b = -b;
+    }
 
     while (b != BigInteger(0))
     {
-        BigInteger r = a % b;
+        BigInteger remained = a % b;
         a = b;
-        b = r;
+        b = remained;
     }
     return a;
 }
@@ -1294,10 +1347,10 @@ inline void BigRational::reduce()
         return;
     }
 
-    BigInteger g = gcd(numerator, denominator);
+    BigInteger divisor = gcd(numerator, denominator);
 
-    numerator /= g;
-    denominator /= g;
+    numerator /= divisor;
+    denominator /= divisor;
 
     if (denominator < BigInteger(0))
     {

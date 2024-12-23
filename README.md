@@ -94,3 +94,74 @@ std::cout << result << std::endl; // 123
 
 ### Note
 To enable extra features like `sqrt`, `isqrt`, and `is_prime`, set the appropriate macros (`SUPPORT_IFSTREAM`, `SUPPORT_MORE_OPS`, `SUPPORT_EVAL`) to `1` before including the header.
+
+
+## `BigRational`
+
+### Features
+
+#### Constructors
+- **Default Constructor**: Initializes the value to 0.
+- **Fraction Constructor (Integer)**: Initializes from two `int64_t` values (numerator and denominator).
+- **Fraction Constructor (String)**: Initializes from two strings representing the numerator and denominator.
+
+#### Supported Operations
+
+##### Arithmetic Operators
+```cpp
+BigRational a("3", "4");    // 3/4
+BigRational b(2, 5);        // 2/5
+
+BigRational sum = a + b;    // Addition
+BigRational diff = a - b;   // Subtraction
+BigRational prod = a * b;   // Multiplication
+BigRational quot = a / b;   // Division
+```
+
+##### Compound Assignment Operators
+```cpp
+a += b;
+a -= b;
+a *= b;
+a /= b;
+```
+
+##### Unary Operators
+```cpp
+BigRational c = +a;
+BigRational d = -b;
+```
+
+##### Comparison Operators
+```cpp
+if (a == b) { ... }
+if (a != b) { ... }
+if (a < b) { ... }
+if (a > b) { ... }
+if (a <= b) { ... }
+if (a >= b) { ... }
+```
+
+##### Additional Operations
+- **Square Root (Double Precision)**
+  ```cpp
+  double root = a.sqrt();
+  ```
+- **Integer Square Root (Only if defined)**
+  ```cpp
+  BigInteger root = a.isqrt();
+  ```
+
+##### Stream Input and Output
+```cpp
+std::cout << a << std::endl;
+std::cin >> a;
+```
+
+### Note
+The `BigRational` class automatically reduces fractions to their simplest form upon creation or after any operation. The numerator and denominator are guaranteed to remain coprime.
+
+```cpp
+BigRational a(6, 4);
+std::сout << a << std::endl; // "3/2"
+```
