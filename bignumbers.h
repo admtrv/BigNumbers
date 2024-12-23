@@ -352,6 +352,7 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs)
 }
 
 #if SUPPORT_IFSTREAM == 1
+
 inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
 {
     std::string input;
@@ -390,6 +391,7 @@ inline std::istream& operator>>(std::istream& lhs, BigInteger& rhs)
 
     return lhs;
 }
+
 #endif
 
 /* More operators */
@@ -415,6 +417,8 @@ inline double BigInteger::sqrt() const
 
     return std::sqrt(result);
 }
+
+#if SUPPORT_MORE_OPS == 1
 
 inline BigInteger BigInteger::isqrt() const
 {
@@ -509,6 +513,8 @@ inline bool BigInteger::is_prime(size_t k) const {
 
     return true;
 }
+
+#endif
 
 #if SUPPORT_EVAL == 1
 
@@ -890,6 +896,7 @@ public:
 #if SUPPORT_MORE_OPS == 1
     BigInteger isqrt() const;
 #endif
+
 private:
     // realization
     BigInteger numerator;
@@ -966,10 +973,69 @@ inline BigRational BigRational::operator-() const
 
 /* Binary arithmetics operators */
 
-inline BigRational operator+(BigRational lhs, const BigRational& rhs);
-inline BigRational operator-(BigRational lhs, const BigRational& rhs);
-inline BigRational operator*(BigRational lhs, const BigRational& rhs);
-inline BigRational operator/(BigRational lhs, const BigRational& rhs);
+inline BigRational& BigRational::operator+=(const BigRational& rhs)
+{
+    // (a/b) + (c/d) = (a*d + b*c) / (b*d)
+    numerator = numerator * rhs.denominator + rhs.numerator * denominator;
+    denominator = denominator * rhs.denominator;
+    reduce();
+    return *this;
+}
+
+inline BigRational operator+(BigRational lhs, const BigRational& rhs)
+{
+    lhs += rhs;
+    return lhs;
+}
+
+inline BigRational& BigRational::operator-=(const BigRational& rhs)
+{
+    // (a/b) - (c/d) = (a*d - b*c) / (b*d)
+    numerator = numerator * rhs.denominator - rhs.numerator * denominator;
+    denominator = denominator * rhs.denominator;
+    reduce();
+    return *this;
+}
+
+inline BigRational operator-(BigRational lhs, const BigRational& rhs)
+{
+    lhs -= rhs;
+    return lhs;
+}
+
+inline BigRational& BigRational::operator*=(const BigRational& rhs)
+{
+    // (a/b) * (c/d) = (a*c) / (b*d)
+    numerator = numerator * rhs.numerator;
+    denominator = denominator * rhs.denominator;
+    reduce();
+    return *this;
+}
+
+inline BigRational operator*(BigRational lhs, const BigRational& rhs)
+{
+    lhs *= rhs;
+    return lhs;
+}
+
+inline BigRational& BigRational::operator/=(const BigRational& rhs)
+{
+    // (a/b) / (c/d) = (a*d) / (b*c)
+    if (rhs.numerator == BigInteger(0))
+    {
+        throw std::logic_error("zero division");
+    }
+    numerator = numerator * rhs.denominator;
+    denominator = denominator * rhs.numerator;
+    reduce();
+    return *this;
+}
+
+inline BigRational operator/(BigRational lhs, const BigRational& rhs)
+{
+    lhs /= rhs;
+    return lhs;
+}
 
 /* Logical operators */
 
@@ -1033,6 +1099,7 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
 
     BigInteger absNum = rhs.numerator;
     bool negative = false;
+
     if (absNum < BigInteger(0))
     {
         negative = true;
@@ -1055,6 +1122,7 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
 }
 
 #if SUPPORT_IFSTREAM == 1
+
 inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
 {
     std::string input;
@@ -1106,6 +1174,7 @@ inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
 
     return lhs;
 }
+
 #endif
 
 /* Assistants */

@@ -32,11 +32,15 @@ public:
         testBigIntegerArithmeticOperators();
         std::cout << std::endl;
 
+#if SUPPORT_MORE_OPS == 1
         testBigIntegerMoreOperators();
         std::cout << std::endl;
+#endif
 
+#if SUPPORT_EVAL == 1
         testBigIntegerEvaluation();
         std::cout << std::endl;
+#endif
 
         testBigRationalConstructors();
         std::cout << std::endl;
@@ -51,6 +55,9 @@ public:
         testBigRationalInputOutput();
         std::cout << std::endl;
 #endif
+
+        testBigRationalArithmeticOperators();
+        std::cout << std::endl;
 
         std::cout << "All tests passed successfully!" << std::endl;
     }
@@ -389,6 +396,8 @@ private:
         std::cout << "BigInteger arithmetic operator tests passed!" << std::endl;
     }
 
+#if SUPPORT_MORE_OPS == 1
+
     static void testBigIntegerMoreOperators()
     {
         std::cout << "Running BigInteger more operators tests..." << std::endl;
@@ -487,6 +496,9 @@ private:
         std::cout << "BigInteger more operators tests passed!" << std::endl;
     }
 
+#endif
+
+#if SUPPORT_EVAL == 1
     static void testBigIntegerEvaluation()
     {
         std::cout << "Running BigInteger evaluation tests..." << std::endl;
@@ -545,6 +557,7 @@ private:
 
         std::cout << "BigInteger evaluation tests passed!" << std::endl;
     }
+#endif
 
     static void testBigRationalConstructors()
     {
@@ -562,7 +575,7 @@ private:
 
         {
             BigRational r3(-10, -2);
-            assert(r3 == BigRational(5,1)); // -10 / -2 -> 10/2 -> до 5/1
+            assert(r3 == BigRational(5,1)); // -10 / -2 -> 10/2 -> 5/1
         }
 
         {
@@ -584,6 +597,7 @@ private:
             BigRational bad(1, 0);
             assert(false);
         } catch(const std::invalid_argument& e) {
+            // zero division
         }
 
         std::cout << "BigRational constructor tests passed!" << std::endl;
@@ -686,4 +700,86 @@ private:
         std::cout << "BigRational input/output tests passed!" << std::endl;
     }
 #endif
+
+    static void testBigRationalArithmeticOperators()
+    {
+        std::cout << "Running BigRational arithmetic operator tests..." << std::endl;
+
+        {
+            // (1/2) + (1/3) = (3/6) + (2/6) = (5/6)
+            BigRational r1(1,2);
+            BigRational r2(1,3);
+            BigRational sum = r1 + r2;
+            assert(sum == BigRational(5,6));
+        }
+
+        {
+            // (-3/4) + (1/2) = (-3/4) + (2/4) = (-1/4)
+            BigRational r1(-3,4);
+            BigRational r2(1,2);
+            BigRational sum = r1 + r2;
+            assert(sum == BigRational(-1,4));
+        }
+
+        {
+            // (1/2) - (1/3) = (1/6)
+            BigRational r1(1,2);
+            BigRational r2(1,3);
+            BigRational diff = r1 - r2;
+            assert(diff == BigRational(1,6));
+        }
+
+        {
+            // (-3/4) - (1/2) = (-3/4) - (2/4) = (-5/4)
+            BigRational r1(-3,4);
+            BigRational r2(1,2);
+            BigRational diff = r1 - r2;
+            assert(diff == BigRational(-5,4));
+        }
+
+        {
+            // (2/3) * (3/4) = (6/12) -> (1/2)
+            BigRational r1(2,3);
+            BigRational r2(3,4);
+            BigRational prod = r1 * r2;
+            assert(prod == BigRational(1,2));
+        }
+
+        {
+            // (-1/2) * (3/7) = (-3/14)
+            BigRational r1(-1,2);
+            BigRational r2(3,7);
+            BigRational prod = r1 * r2;
+            assert(prod == BigRational(-3,14));
+        }
+
+        {
+            // (3/4) / (1/2) = (3/4) * (2/1) = (6/4) -> (3/2)
+            BigRational r1(3,4);
+            BigRational r2(1,2);
+            BigRational div = r1 / r2;
+            assert(div == BigRational(3,2));
+        }
+
+        {
+            // (-1/2) / (2/3) = (-1/2) * (3/2) = (-3/4)
+            BigRational r1(-1,2);
+            BigRational r2(2,3);
+            BigRational div = r1 / r2;
+            assert(div == BigRational(-3,4));
+        }
+
+        {
+            BigRational r1(1,2);
+            BigRational r2(0,5);
+            try {
+                auto x = r1 / r2;
+                assert(false);
+            } catch(const std::logic_error& e) {
+                // zero division
+            }
+        }
+
+        std::cout << "BigRational arithmetic operator tests passed!" << std::endl;
+    }
 };
