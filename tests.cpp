@@ -24,8 +24,10 @@ public:
         testBigIntegerLogicalOperators();
         std::cout << std::endl;
 
+#if SUPPORT_IFSTREAM == 1
         testBigIntegerInputOutput();
         std::cout << std::endl;
+#endif
 
         testBigIntegerArithmeticOperators();
         std::cout << std::endl;
@@ -44,7 +46,12 @@ public:
 
         testBigRationalLogicalOperators();
         std::cout << std::endl;
-        
+
+#if SUPPORT_IFSTREAM == 1
+        testBigRationalInputOutput();
+        std::cout << std::endl;
+#endif
+
         std::cout << "All tests passed successfully!" << std::endl;
     }
 
@@ -130,7 +137,7 @@ private:
 
         std::cout << "BigInteger logical operator tests passed!" << std::endl;
     }
-
+#if SUPPORT_IFSTREAM == 1
     static void testBigIntegerInputOutput()
     {
         std::cout << "Running BigInteger input/output tests..." << std::endl;
@@ -163,8 +170,30 @@ private:
             assert(output_stream.str() == "9000238901");
         }
 
+        {
+            std::istringstream input_stream("");
+            BigInteger num;
+            input_stream >> num;
+            assert(!input_stream.good());
+        }
+
+        {
+            std::istringstream input_stream("abc123");
+            BigInteger num;
+            input_stream >> num;
+            assert(!input_stream.good());
+        }
+
+        {
+            std::istringstream input_stream("-");
+            BigInteger num;
+            input_stream >> num;
+            assert(!input_stream.good());
+        }
+
         std::cout << "BigInteger input/output tests passed!" << std::endl;
     }
+#endif
 
     static void testBigIntegerArithmeticOperators()
     {
@@ -607,5 +636,54 @@ private:
 
         std::cout << "BigRational logical operator tests passed!" << std::endl;
     }
+#if SUPPORT_IFSTREAM == 1
+    static void testBigRationalInputOutput()
+    {
+        std::cout << "Running BigRational input/output tests..." << std::endl;
 
+        {
+            std::istringstream input_stream("3/4");
+            BigRational r;
+            input_stream >> r;
+            assert(r == BigRational(3,4));
+        }
+
+        {
+            std::istringstream input_stream("-3/-4");
+            BigRational r;
+            input_stream >> r;
+            assert(r == BigRational(3,4));
+        }
+
+        {
+            std::istringstream input_stream("12");
+            BigRational r;
+            input_stream >> r;
+            assert(r == BigRational(12,1));
+        }
+
+        {
+            BigRational r(-5,2);
+            std::ostringstream output_stream;
+            output_stream << r;
+            assert(output_stream.str() == "-5/2");
+        }
+
+        {
+            std::istringstream input_stream("abc/2");
+            BigRational r;
+            input_stream >> r;
+            assert(!input_stream.good());
+        }
+
+        {
+            std::istringstream input_stream("123/");
+            BigRational r;
+            input_stream >> r;
+            assert(!input_stream.good());
+        }
+
+        std::cout << "BigRational input/output tests passed!" << std::endl;
+    }
+#endif
 };

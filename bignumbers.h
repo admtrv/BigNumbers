@@ -56,7 +56,9 @@ private:
 
     // friends
     friend std::ostream& operator<<(std::ostream& lhs, const BigInteger& rhs);
+#if SUPPORT_IFSTREAM == 1
     friend std::istream& operator>>(std::istream& lhs, BigInteger& rhs);
+#endif
 
     friend bool operator==(const BigInteger& lhs, const BigInteger& rhs);
     friend bool operator!=(const BigInteger& lhs, const BigInteger& rhs);
@@ -894,6 +896,11 @@ private:
     BigInteger denominator;
 
     // friends
+    friend std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs);
+#if SUPPORT_IFSTREAM == 1
+    friend std::istream& operator>>(std::istream& lhs, BigRational& rhs);
+#endif
+
     friend std::strong_ordering operator<=>(const BigRational& lhs, const BigRational& rhs);
     friend bool operator==(const BigRational& lhs, const BigRational& rhs);
     friend bool operator!=(const BigRational& lhs, const BigRational& rhs);
@@ -934,8 +941,7 @@ inline BigRational::BigRational(const std::string& a, const std::string& b): num
 
 inline BigRational::BigRational(const BigRational& other): numerator(other.numerator), denominator(other.denominator){}
 
-inline BigRational& BigRational::operator=(const BigRational& rhs)
-{
+inline BigRational& BigRational::operator=(const BigRational& rhs) {
     if (this != &rhs)
     {
         numerator   = rhs.numerator;
@@ -1022,12 +1028,85 @@ inline bool operator>=(const BigRational& lhs, const BigRational& rhs)
 
 /* Friends */
 
-inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs);
+inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
+{
+
+    BigInteger absNum = rhs.numerator;
+    bool negative = false;
+    if (absNum < BigInteger(0))
+    {
+        negative = true;
+        absNum = -absNum;
+    }
+
+    if (negative)
+    {
+        lhs << "-";
+    }
+
+    lhs << absNum;
+
+    if (rhs.denominator != BigInteger(1))
+    {
+        lhs << "/" << rhs.denominator;
+    }
+
+    return lhs;
+}
 
 #if SUPPORT_IFSTREAM == 1
-inline std::istream& operator>>(std::istream& lhs, BigRational& rhs);
-#endif
+inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
+{
+    std::string input;
+    lhs >> input;
 
+    if (input.empty())
+    {
+        lhs.setstate(std::ios::failbit);
+        return lhs;
+    }
+
+    auto slashPos = input.find('/');
+    if (slashPos == std::string::npos)
+    {
+        try {
+            rhs.numerator = BigInteger(input);
+            rhs.denominator = BigInteger(1);
+            rhs.reduce();
+        } catch (...) {
+            lhs.setstate(std::ios::failbit);
+        }
+    }
+    else
+    {
+        std::string leftPart  = input.substr(0, slashPos);
+        std::string rightPart = input.substr(slashPos + 1);
+
+        if (rightPart.empty()) // "123/"
+        {
+            lhs.setstate(std::ios::failbit);
+            return lhs;
+        }
+
+        try {
+            rhs.numerator = BigInteger(leftPart);
+            rhs.denominator = BigInteger(rightPart);
+
+            if (rhs.denominator == BigInteger(0)) // "123/0"
+            {
+                lhs.setstate(std::ios::failbit);
+                return lhs;
+            }
+
+            rhs.reduce();
+        } catch (...) {
+            lhs.setstate(std::ios::failbit);
+        }
+    }
+
+    return lhs;
+}
+#endif
 
 /* Assistants */
 
