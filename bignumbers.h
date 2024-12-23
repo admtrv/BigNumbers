@@ -43,10 +43,10 @@ public:
     BigInteger& operator%=(const BigInteger& rhs);
 
     // more operators
-    [[nodiscard]] double sqrt() const;
+    double sqrt() const;
 #if SUPPORT_MORE_OPS == 1
-    [[nodiscard]] BigInteger isqrt() const;
-    [[nodiscard]] bool is_prime(size_t k) const;
+    BigInteger isqrt() const;
+    bool is_prime(size_t k) const;
 #endif
 
 private:
@@ -66,6 +66,8 @@ private:
     friend bool operator>(const BigInteger& lhs, const BigInteger& rhs);
     friend bool operator<=(const BigInteger& lhs, const BigInteger& rhs);
     friend bool operator>=(const BigInteger& lhs, const BigInteger& rhs);
+
+    friend class BigRational;
 
     // assistants
     void removeLeadingZeros();
@@ -706,9 +708,9 @@ inline std::string BigInteger::addStrings(const std::string& a, const std::strin
 
     for (int i = 0; i < std::max(a_len, b_len) || carry; i++)
     {
-        int digitA = i < a_len ? a[a_len - i - 1] - '0' : 0;
-        int digitB = i < b_len ? b[b_len - i - 1] - '0' : 0;
-        sum = digitA + digitB + carry;
+        int digit_a = i < a_len ? a[a_len - i - 1] - '0' : 0;
+        int digit_b = i < b_len ? b[b_len - i - 1] - '0' : 0;
+        sum = digit_a + digit_b + carry;
         result += (sum % 10) + '0';
         carry = sum / 10;
     }
@@ -729,9 +731,9 @@ inline std::string BigInteger::subtractStrings(const std::string& a, const std::
 
     for (int i = 0; i < a_len; i++)
     {
-        int digitA = a[a_len - i - 1] - '0';
-        int digitB = i < b_len ? b[b_len - i - 1] - '0' : 0;
-        difference = digitA - digitB - borrow;
+        int digit_a = a[a_len - i - 1] - '0';
+        int digit_b = i < b_len ? b[b_len - i - 1] - '0' : 0;
+        difference = digit_a - digit_b - borrow;
 
         if (difference < 0)
         {
@@ -951,7 +953,7 @@ inline BigRational::BigRational(const BigRational& other): numerator(other.numer
 inline BigRational& BigRational::operator=(const BigRational& rhs) {
     if (this != &rhs)
     {
-        numerator   = rhs.numerator;
+        numerator = rhs.numerator;
         denominator = rhs.denominator;
     }
     return *this;
@@ -1041,16 +1043,16 @@ inline BigRational operator/(BigRational lhs, const BigRational& rhs)
 
 inline std::strong_ordering operator<=>(const BigRational& lhs, const BigRational& rhs)
 {
-    // lhs < rhs  <=>  lhs.numerator * rhs.denominator < rhs.numerator * lhs.denominator
+    // lhs < rhs  <->  lhs.numerator * rhs.denominator < rhs.numerator * lhs.denominator
 
-    BigInteger leftCross  = lhs.numerator * rhs.denominator;
-    BigInteger rightCross = rhs.numerator * lhs.denominator;
+    BigInteger left_cross = lhs.numerator * rhs.denominator;
+    BigInteger right_cross = rhs.numerator * lhs.denominator;
 
-    if (leftCross == rightCross)
+    if (left_cross == right_cross)
     {
         return std::strong_ordering::equal;
     }
-    else if (leftCross < rightCross)
+    else if (left_cross < right_cross)
     {
         return std::strong_ordering::less;
     }
@@ -1097,13 +1099,13 @@ inline bool operator>=(const BigRational& lhs, const BigRational& rhs)
 inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
 {
 
-    BigInteger absNum = rhs.numerator;
+    BigInteger abs_number = rhs.numerator;
     bool negative = false;
 
-    if (absNum < BigInteger(0))
+    if (abs_number < BigInteger(0))
     {
         negative = true;
-        absNum = -absNum;
+        abs_number = -abs_number;
     }
 
     if (negative)
@@ -1111,7 +1113,7 @@ inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs)
         lhs << "-";
     }
 
-    lhs << absNum;
+    lhs << abs_number;
 
     if (rhs.denominator != BigInteger(1))
     {
@@ -1134,8 +1136,8 @@ inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
         return lhs;
     }
 
-    auto slashPos = input.find('/');
-    if (slashPos == std::string::npos)
+    auto slash_pos = input.find('/');
+    if (slash_pos == std::string::npos)
     {
         try {
             rhs.numerator = BigInteger(input);
@@ -1147,18 +1149,18 @@ inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
     }
     else
     {
-        std::string leftPart  = input.substr(0, slashPos);
-        std::string rightPart = input.substr(slashPos + 1);
+        std::string left_part  = input.substr(0, slash_pos);
+        std::string right_part = input.substr(slash_pos + 1);
 
-        if (rightPart.empty()) // "123/"
+        if (right_part.empty()) // "123/"
         {
             lhs.setstate(std::ios::failbit);
             return lhs;
         }
 
         try {
-            rhs.numerator = BigInteger(leftPart);
-            rhs.denominator = BigInteger(rightPart);
+            rhs.numerator = BigInteger(left_part);
+            rhs.denominator = BigInteger(right_part);
 
             if (rhs.denominator == BigInteger(0)) // "123/0"
             {
@@ -1177,11 +1179,101 @@ inline std::istream& operator>>(std::istream& lhs, BigRational& rhs)
 
 #endif
 
+/* More operators */
+
+inline double BigRational::sqrt() const
+{
+    if (numerator < BigInteger(0))
+    {
+        throw std::runtime_error("negative number");
+    }
+
+    double double_numerator = 0.0;
+    double double_denominator = 0.0;
+
+    try {
+        double_numerator = std::stod(this->numerator.value);
+        double_denominator = std::stod(this->denominator.value);
+    } catch(const std::out_of_range&) {
+        throw std::runtime_error("large number");
+    }
+
+    if (std::isinf(double_numerator) || std::isinf(double_denominator) || double_denominator == 0.0)
+    {
+        throw std::runtime_error("large number");
+    }
+
+    double number = double_numerator / double_denominator;
+    if (number < 0.0)
+    {
+        throw std::runtime_error("negative number");
+    }
+
+    double result = std::sqrt(number);
+    if (std::isinf(result))
+    {
+        throw std::runtime_error("large number");
+    }
+
+    return result;
+}
+
+#if SUPPORT_MORE_OPS == 1
+
+inline BigInteger BigRational::isqrt() const
+{
+    if (numerator < BigInteger(0))
+    {
+        throw std::runtime_error("negative number");
+    }
+
+    if (numerator == BigInteger(0))
+    {
+        return BigInteger(0);
+    }
+
+    // searching for x^2 <= numerator/denominator <= (x + 1)^2
+    // -> x^2 * denominator <= numerator <= (x + 1)^2 * denominator
+    // -> binary search
+
+    BigInteger low(0);
+    BigInteger high = numerator;
+    BigInteger one(1);
+
+    BigInteger result(0);
+
+    while (low <= high)
+    {
+        BigInteger mid = (low + high) / BigInteger(2);
+
+        BigInteger left = mid * mid * denominator;
+
+        if (left == numerator)
+        {
+            return mid;
+        }
+        else if (left < numerator)
+        {
+            result = mid;
+            low = mid + one;
+        }
+        else
+        {
+            high = mid - one;
+        }
+    }
+
+    return result;
+}
+
+#endif
+
 /* Assistants */
 
 inline BigInteger BigRational::gcd(const BigInteger& x, const BigInteger& y)
 {
-    BigInteger a = x, b = y;
+    BigInteger a = x;
+    BigInteger b = y;
     if (a < BigInteger(0)) a = -a;
     if (b < BigInteger(0)) b = -b;
 

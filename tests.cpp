@@ -59,6 +59,11 @@ public:
         testBigRationalArithmeticOperators();
         std::cout << std::endl;
 
+#if SUPPORT_MORE_OPS == 1
+        testBigRationalMoreOperators();
+        std::cout << std::endl;
+#endif
+
         std::cout << "All tests passed successfully!" << std::endl;
     }
 
@@ -413,7 +418,7 @@ private:
             BigInteger num("-123456789");
             try {
                 double result = num.sqrt();
-                assert(false); // Should not reach here
+                assert(false); // should not reach here
             } catch (const std::exception& e) {
                 assert(std::string(e.what()) == "negative number");
             }
@@ -448,7 +453,7 @@ private:
             BigInteger num("-16");
             try {
                 BigInteger result = num.isqrt();
-                assert(false); // Should not reach here
+                assert(false); // should not reach here
             } catch (const std::exception& e) {
                 assert(std::string(e.what()) == "negative number");
             }
@@ -480,14 +485,14 @@ private:
             BigInteger num12("104730");
             assert(num12.is_prime(5) == false);
 
-            BigInteger numNeg("-7");
-            assert(numNeg.is_prime(5) == false);
+            BigInteger num13("-7");
+            assert(num13.is_prime(5) == false);
 
-            BigInteger numZero("0");
-            assert(numZero.is_prime(5) == false);
+            BigInteger zero("0");
+            assert(zero.is_prime(5) == false);
 
-            BigInteger numOne("1");
-            assert(numOne.is_prime(5) == false);
+            BigInteger one("1");
+            assert(one.is_prime(5) == false);
 
             BigInteger carmichael("561");
             assert(carmichael.is_prime(5) == false);
@@ -564,37 +569,37 @@ private:
         std::cout << "Running BigRational constructor tests..." << std::endl;
 
         {
-            BigRational r1;
-            assert(r1 == BigRational(0,1));
+            BigRational num1;
+            assert(num1 == BigRational(0, 1));
         }
 
         {
-            BigRational r2(3, 4);
-            assert(r2 == BigRational("3", "4"));
+            BigRational num2(3, 4);
+            assert(num2 == BigRational("3", "4"));
         }
 
         {
-            BigRational r3(-10, -2);
-            assert(r3 == BigRational(5,1)); // -10 / -2 -> 10/2 -> 5/1
+            BigRational num3(-10, -2);
+            assert(num3 == BigRational(5, 1)); // -10 / -2 -> 10/2 -> 5/1
         }
 
         {
-            BigRational r4(-10, 2);
-            assert(r4 == BigRational("-5","1")); // -10/2 -> -5/1
+            BigRational num4(-10, 2);
+            assert(num4 == BigRational("-5", "1")); // -10/2 -> -5/1
         }
 
         {
-            BigRational r5("12", "-8");
-            assert(r5 == BigRational("-3","2")); // 12 / -8 -> -3/2
+            BigRational num5("12", "-8");
+            assert(num5 == BigRational("-3", "2")); // 12 / -8 -> -3/2
         }
 
         {
-            BigRational r6("0", "3456");
-            assert(r6 == BigRational(0,1));
+            BigRational num6("0", "3456");
+            assert(num6 == BigRational(0, 1));
         }
 
         try {
-            BigRational bad(1, 0);
+            BigRational num7(1, 0);
             assert(false);
         } catch(const std::invalid_argument& e) {
             // zero division
@@ -608,17 +613,17 @@ private:
         std::cout << "Running BigRational unary operator tests..." << std::endl;
 
         {
-            BigRational r1(-3,4); // -3/4
-            assert((+r1) == BigRational(-3,4));
+            BigRational num1(-3, 4); // -3/4
+            assert((+num1) == BigRational(-3, 4));
 
-            BigRational r2 = -r1; // 3/4
-            assert(r2 == BigRational(3,4));
+            BigRational num2 = -num1; // 3/4
+            assert(num2 == BigRational(3, 4));
         }
 
         {
-            BigRational r3("0", "5");
-            assert((+r3) == r3);
-            assert((-r3) == BigRational(0,1));  // -0/1 == 0/1
+            BigRational num3("0", "5");
+            assert((+num3) == num3);
+            assert((-num3) == BigRational(0, 1));  // -0/1 == 0/1
         }
 
         std::cout << "BigRational unary operator tests passed!" << std::endl;
@@ -628,25 +633,25 @@ private:
     {
         std::cout << "Running BigRational logical operator tests..." << std::endl;
 
-        BigRational r1(1,2);     // 1/2
-        BigRational r2(2,4);     // 2/4 -> 1/2
-        BigRational r3(-3,4);    // -3/4
-        BigRational r4(3, -4);   // 3/-4 -> -3/4
-        BigRational r5(2,3);     // 2/3
-        BigRational zero(0,1);   // 0/1
+        BigRational num1(1, 2);     // 1/2
+        BigRational num2(2, 4);     // 2/4 -> 1/2
+        BigRational num3(-3, 4);    // -3/4
+        BigRational num4(3, -4);    // 3/-4 -> -3/4
+        BigRational num5(2, 3);     // 2/3
+        BigRational zero(0,1);      // 0/1
 
-        assert(r1 == r2);
-        assert(r3 == r4);
-        assert(r3 != r5);
+        assert(num1 == num2);
+        assert(num3 == num4);
+        assert(num3 != num5);
 
-        assert(r1 < r5);
-        assert(r3 < r1);
-        assert(r5 > r2);
-        assert(zero < r1);
+        assert(num1 < num5);
+        assert(num3 < num1);
+        assert(num5 > num2);
+        assert(zero < num1);
 
-        assert(r1 <= r2);
-        assert(r1 <= r5);
-        assert(r5 >= r1);
+        assert(num1 <= num2);
+        assert(num1 <= num5);
+        assert(num5 >= num1);
 
         std::cout << "BigRational logical operator tests passed!" << std::endl;
     }
@@ -657,43 +662,43 @@ private:
 
         {
             std::istringstream input_stream("3/4");
-            BigRational r;
-            input_stream >> r;
-            assert(r == BigRational(3,4));
+            BigRational num1;
+            input_stream >> num1;
+            assert(num1 == BigRational(3, 4));
         }
 
         {
             std::istringstream input_stream("-3/-4");
-            BigRational r;
-            input_stream >> r;
-            assert(r == BigRational(3,4));
+            BigRational num2;
+            input_stream >> num2;
+            assert(num2 == BigRational(3, 4));
         }
 
         {
             std::istringstream input_stream("12");
-            BigRational r;
-            input_stream >> r;
-            assert(r == BigRational(12,1));
+            BigRational num3;
+            input_stream >> num3;
+            assert(num3 == BigRational(12, 1));
         }
 
         {
-            BigRational r(-5,2);
+            BigRational num4(-5, 2);
             std::ostringstream output_stream;
-            output_stream << r;
+            output_stream << num4;
             assert(output_stream.str() == "-5/2");
         }
 
         {
             std::istringstream input_stream("abc/2");
-            BigRational r;
-            input_stream >> r;
+            BigRational num5;
+            input_stream >> num5;
             assert(!input_stream.good());
         }
 
         {
             std::istringstream input_stream("123/");
-            BigRational r;
-            input_stream >> r;
+            BigRational num6;
+            input_stream >> num6;
             assert(!input_stream.good());
         }
 
@@ -707,73 +712,73 @@ private:
 
         {
             // (1/2) + (1/3) = (3/6) + (2/6) = (5/6)
-            BigRational r1(1,2);
-            BigRational r2(1,3);
-            BigRational sum = r1 + r2;
-            assert(sum == BigRational(5,6));
+            BigRational num1(1, 2);
+            BigRational num2(1, 3);
+            BigRational result = num1 + num2;
+            assert(result == BigRational(5, 6));
         }
 
         {
             // (-3/4) + (1/2) = (-3/4) + (2/4) = (-1/4)
-            BigRational r1(-3,4);
-            BigRational r2(1,2);
-            BigRational sum = r1 + r2;
-            assert(sum == BigRational(-1,4));
+            BigRational num1(-3, 4);
+            BigRational num2(1, 2);
+            BigRational result = num1 + num2;
+            assert(result == BigRational(-1, 4));
         }
 
         {
             // (1/2) - (1/3) = (1/6)
-            BigRational r1(1,2);
-            BigRational r2(1,3);
-            BigRational diff = r1 - r2;
-            assert(diff == BigRational(1,6));
+            BigRational num1(1, 2);
+            BigRational num2(1, 3);
+            BigRational result = num1 - num2;
+            assert(result == BigRational(1, 6));
         }
 
         {
             // (-3/4) - (1/2) = (-3/4) - (2/4) = (-5/4)
-            BigRational r1(-3,4);
-            BigRational r2(1,2);
-            BigRational diff = r1 - r2;
-            assert(diff == BigRational(-5,4));
+            BigRational num1(-3, 4);
+            BigRational num2(1, 2);
+            BigRational result = num1 - num2;
+            assert(result == BigRational(-5, 4));
         }
 
         {
             // (2/3) * (3/4) = (6/12) -> (1/2)
-            BigRational r1(2,3);
-            BigRational r2(3,4);
-            BigRational prod = r1 * r2;
-            assert(prod == BigRational(1,2));
+            BigRational num1(2, 3);
+            BigRational num2(3, 4);
+            BigRational result = num1 * num2;
+            assert(result == BigRational(1, 2));
         }
 
         {
             // (-1/2) * (3/7) = (-3/14)
-            BigRational r1(-1,2);
-            BigRational r2(3,7);
-            BigRational prod = r1 * r2;
-            assert(prod == BigRational(-3,14));
+            BigRational num1(-1, 2);
+            BigRational num2(3, 7);
+            BigRational result = num1 * num2;
+            assert(result == BigRational(-3, 14));
         }
 
         {
             // (3/4) / (1/2) = (3/4) * (2/1) = (6/4) -> (3/2)
-            BigRational r1(3,4);
-            BigRational r2(1,2);
-            BigRational div = r1 / r2;
-            assert(div == BigRational(3,2));
+            BigRational num1(3, 4);
+            BigRational num2(1, 2);
+            BigRational result = num1 / num2;
+            assert(result == BigRational(3, 2));
         }
 
         {
             // (-1/2) / (2/3) = (-1/2) * (3/2) = (-3/4)
-            BigRational r1(-1,2);
-            BigRational r2(2,3);
-            BigRational div = r1 / r2;
-            assert(div == BigRational(-3,4));
+            BigRational num1(-1, 2);
+            BigRational num2(2, 3);
+            BigRational result = num1 / num2;
+            assert(result == BigRational(-3, 4));
         }
 
         {
-            BigRational r1(1,2);
-            BigRational r2(0,5);
+            BigRational num1(1, 2);
+            BigRational num2(0, 5);
             try {
-                auto x = r1 / r2;
+                BigRational result = num1 / num2;
                 assert(false);
             } catch(const std::logic_error& e) {
                 // zero division
@@ -782,4 +787,54 @@ private:
 
         std::cout << "BigRational arithmetic operator tests passed!" << std::endl;
     }
+
+#if SUPPORT_MORE_OPS == 1
+    static void testBigRationalMoreOperators()
+    {
+        std::cout << "Running BigRational more operators tests..." << std::endl;
+
+        // sqrt()
+        {
+            BigRational num(4, 9);
+            double result = num.sqrt(); // close to 0.666666...
+            assert(std::abs(result - 0.666666667) < 0.000000001);
+        }
+
+        {
+            BigRational num(-1, 2);
+            try {
+                double result = num.sqrt();
+                assert(false);
+            } catch(const std::exception& e) {
+                // negative number
+            }
+        }
+
+        // isqrt()
+        {
+            BigRational num(4, 9);
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger(0));
+        }
+
+        {
+            // 9/4 == 2.25 -> isqrt = floor(1.5) = 1
+            BigRational num(9, 4);
+            BigInteger result = num.isqrt();
+            assert(result == BigInteger(1));
+        }
+
+        {
+            BigRational num(-16, 1);
+            try {
+                BigInteger result = num.isqrt();
+                assert(false);
+            } catch(const std::exception& e) {
+                // negative number
+            }
+        }
+
+        std::cout << "BigRational more operators tests passed!" << std::endl;
+    }
+#endif
 };
