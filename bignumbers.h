@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <valarray>
 #include <random>
+#include <compare>
 
 #define SUPPORT_IFSTREAM 1
 #define SUPPORT_MORE_OPS 1
@@ -868,12 +869,15 @@ public:
     BigRational();
     BigRational(int64_t a, int64_t b);
     BigRational(const std::string& a, const std::string& b);
+
     // copy
     BigRational(const BigRational& other);
     BigRational& operator=(const BigRational& rhs);
+
     // unary operators
     const BigRational& operator+() const;
     BigRational operator-() const;
+
     // binary arithmetics operators
     BigRational& operator+=(const BigRational& rhs);
     BigRational& operator-=(const BigRational& rhs);
@@ -885,23 +889,163 @@ public:
     BigInteger isqrt() const;
 #endif
 private:
+    // realization
+    BigInteger numerator;
+    BigInteger denominator;
+
+    // friends
+    friend std::strong_ordering operator<=>(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator==(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator!=(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator<(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator>(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator<=(const BigRational& lhs, const BigRational& rhs);
+    friend bool operator>=(const BigRational& lhs, const BigRational& rhs);
+
+    // assistants
+    void reduce();
+    static BigInteger gcd(const BigInteger& x, const BigInteger& y);
 
 };
+
+/* Constructors */
+
+inline BigRational::BigRational() : numerator(0), denominator(1) {}
+
+inline BigRational::BigRational(int64_t a, int64_t b): numerator(a), denominator(b)
+{
+    if (b == 0)
+    {
+        throw std::invalid_argument("zero division");
+    }
+    reduce();
+}
+
+inline BigRational::BigRational(const std::string& a, const std::string& b): numerator(a), denominator(b)
+{
+    if (denominator == BigInteger(0))
+    {
+        throw std::invalid_argument("zero division");
+    }
+    reduce();
+}
+
+/* Copy */
+
+inline BigRational::BigRational(const BigRational& other): numerator(other.numerator), denominator(other.denominator){}
+
+inline BigRational& BigRational::operator=(const BigRational& rhs)
+{
+    if (this != &rhs)
+    {
+        numerator   = rhs.numerator;
+        denominator = rhs.denominator;
+    }
+    return *this;
+}
 
 inline BigRational operator+(BigRational lhs, const BigRational& rhs);
 inline BigRational operator-(BigRational lhs, const BigRational& rhs);
 inline BigRational operator*(BigRational lhs, const BigRational& rhs);
 inline BigRational operator/(BigRational lhs, const BigRational& rhs);
 
-inline bool operator==(const BigRational& lhs, const BigRational& rhs);
-inline bool operator!=(const BigRational& lhs, const BigRational& rhs);
-inline bool operator<(const BigRational& lhs, const BigRational& rhs);
-inline bool operator>(const BigRational& lhs, const BigRational& rhs);
-inline bool operator<=(const BigRational& lhs, const BigRational& rhs);
-inline bool operator>=(const BigRational& lhs, const BigRational& rhs);
+/* Logical operators */
+
+inline std::strong_ordering operator<=>(const BigRational& lhs, const BigRational& rhs)
+{
+    // lhs < rhs  <=>  lhs.numerator * rhs.denominator < rhs.numerator * lhs.denominator
+
+    BigInteger leftCross  = lhs.numerator * rhs.denominator;
+    BigInteger rightCross = rhs.numerator * lhs.denominator;
+
+    if (leftCross == rightCross)
+    {
+        return std::strong_ordering::equal;
+    }
+    else if (leftCross < rightCross)
+    {
+        return std::strong_ordering::less;
+    }
+    else
+    {
+        return std::strong_ordering::greater;
+    }
+}
+
+inline bool operator==(const BigRational& lhs, const BigRational& rhs)
+{
+    return (lhs <=> rhs) == std::strong_ordering::equal;
+}
+
+inline bool operator!=(const BigRational& lhs, const BigRational& rhs)
+{
+    return (lhs <=> rhs) != std::strong_ordering::equal;
+}
+
+inline bool operator<(const BigRational& lhs, const BigRational& rhs)
+{
+    return (lhs <=> rhs) == std::strong_ordering::less;
+}
+
+inline bool operator>(const BigRational& lhs, const BigRational& rhs)
+{
+    return (lhs <=> rhs) == std::strong_ordering::greater;
+}
+
+inline bool operator<=(const BigRational& lhs, const BigRational& rhs)
+{
+    auto cmp = (lhs <=> rhs);
+    return cmp == std::strong_ordering::equal || cmp == std::strong_ordering::less;
+}
+
+inline bool operator>=(const BigRational& lhs, const BigRational& rhs)
+{
+    auto cmp = (lhs <=> rhs);
+    return cmp == std::strong_ordering::equal || cmp == std::strong_ordering::greater;
+}
+
+/* Friends */
 
 inline std::ostream& operator<<(std::ostream& lhs, const BigRational& rhs);
 
 #if SUPPORT_IFSTREAM == 1
 inline std::istream& operator>>(std::istream& lhs, BigRational& rhs);
 #endif
+
+
+/* Assistants */
+
+inline BigInteger BigRational::gcd(const BigInteger& x, const BigInteger& y)
+{
+    BigInteger a = x, b = y;
+    if (a < BigInteger(0)) a = -a;
+    if (b < BigInteger(0)) b = -b;
+
+    while (b != BigInteger(0))
+    {
+        BigInteger r = a % b;
+        a = b;
+        b = r;
+    }
+    return a;
+}
+
+inline void BigRational::reduce()
+{
+    if (numerator == BigInteger(0))
+    {
+        denominator = BigInteger(1);
+        return;
+    }
+
+    BigInteger g = gcd(numerator, denominator);
+
+    numerator /= g;
+    denominator /= g;
+
+    if (denominator < BigInteger(0))
+    {
+        numerator = -numerator;
+        denominator = -denominator;
+    }
+}

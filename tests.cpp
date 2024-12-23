@@ -15,34 +15,40 @@ public:
         std::cout << "Running all tests..." << std::endl;
         std::cout << std::endl;
 
-        testConstructors();
+        testBigIntegerConstructors();
         std::cout << std::endl;
 
-        testUnaryOperators();
+        testBigIntegerUnaryOperators();
         std::cout << std::endl;
 
-        testLogicalOperators();
+        testBigIntegerLogicalOperators();
         std::cout << std::endl;
 
-        testInputOutput();
+        testBigIntegerInputOutput();
         std::cout << std::endl;
 
-        testArithmeticOperators();
+        testBigIntegerArithmeticOperators();
         std::cout << std::endl;
 
-        testMoreOperators();
+        testBigIntegerMoreOperators();
         std::cout << std::endl;
 
-        testEvaluation();
+        testBigIntegerEvaluation();
+        std::cout << std::endl;
+
+        testBigRationalConstructors();
+        std::cout << std::endl;
+
+        testBigRationalLogicalOperators();
         std::cout << std::endl;
         
         std::cout << "All tests passed successfully!" << std::endl;
     }
 
 private:
-    static void testConstructors()
+    static void testBigIntegerConstructors()
     {
-        std::cout << "Running constructor tests..." << std::endl;
+        std::cout << "Running BigInteger constructor tests..." << std::endl;
 
         BigInteger num1;
         BigInteger num2(12345);
@@ -58,12 +64,12 @@ private:
         assert(num5 == num2);
         assert(num6 == num3);
 
-        std::cout << "Constructor tests passed!" << std::endl;
+        std::cout << "BigInteger constructor tests passed!" << std::endl;
     }
 
-    static void testUnaryOperators()
+    static void testBigIntegerUnaryOperators()
     {
-        std::cout << "Running unary operator tests..." << std::endl;
+        std::cout << "Running BigInteger unary operator tests..." << std::endl;
 
         BigInteger num1(-12345);
         BigInteger num2("67890");
@@ -76,12 +82,12 @@ private:
         assert(-num1 == BigInteger("12345"));
         assert(-num2 == BigInteger("-67890"));
 
-        std::cout << "Unary operator tests passed!" << std::endl;
+        std::cout << "BigInteger unary operator tests passed!" << std::endl;
     }
 
-    static void testLogicalOperators()
+    static void testBigIntegerLogicalOperators()
     {
-        std::cout << "Running logical operator tests..." << std::endl;
+        std::cout << "Running BigInteger logical operator tests..." << std::endl;
 
         BigInteger num1(12345);
         BigInteger num2("67890");
@@ -119,12 +125,12 @@ private:
         assert(large1 >= large2);
         assert(large3 <= large1);
 
-        std::cout << "Logical operator tests passed!" << std::endl;
+        std::cout << "BigInteger logical operator tests passed!" << std::endl;
     }
 
-    static void testInputOutput()
+    static void testBigIntegerInputOutput()
     {
-        std::cout << "Running input/output tests..." << std::endl;
+        std::cout << "Running BigInteger input/output tests..." << std::endl;
 
         {
             std::istringstream input_stream("-123456");
@@ -154,12 +160,12 @@ private:
             assert(output_stream.str() == "9000238901");
         }
 
-        std::cout << "Input/output tests passed!" << std::endl;
+        std::cout << "BigInteger input/output tests passed!" << std::endl;
     }
 
-    static void testArithmeticOperators()
+    static void testBigIntegerArithmeticOperators()
     {
-        std::cout << "Running arithmetic operator tests..." << std::endl;
+        std::cout << "Running BigInteger arithmetic operator tests..." << std::endl;
 
         // Addition
         {
@@ -348,12 +354,12 @@ private:
             assert(result == BigInteger("123456789"));
         }
 
-        std::cout << "Arithmetic operator tests passed!" << std::endl;
+        std::cout << "BigInteger arithmetic operator tests passed!" << std::endl;
     }
 
-    static void testMoreOperators()
+    static void testBigIntegerMoreOperators()
     {
-        std::cout << "Running more operators tests..." << std::endl;
+        std::cout << "Running BigInteger more operators tests..." << std::endl;
 
         // sqrt()
         {
@@ -446,12 +452,12 @@ private:
             assert(carmichael.is_prime(5) == false);
         }
 
-        std::cout << "More operators tests passed!" << std::endl;
+        std::cout << "BigInteger more operators tests passed!" << std::endl;
     }
 
-    static void testEvaluation()
+    static void testBigIntegerEvaluation()
     {
-        std::cout << "Running evaluation tests..." << std::endl;
+        std::cout << "Running BigInteger evaluation tests..." << std::endl;
 
         {
             std::string json = R"(
@@ -505,7 +511,77 @@ private:
             assert(result == BigInteger(1000 - 200 + (123456 / 123)));
         }
 
-        std::cout << "Evaluation tests passed!" << std::endl;
+        std::cout << "BigInteger evaluation tests passed!" << std::endl;
     }
-};
 
+    static void testBigRationalConstructors()
+    {
+        std::cout << "Running BigRational constructor tests..." << std::endl;
+
+        {
+            BigRational r1;
+            assert(r1 == BigRational(0,1));
+        }
+
+        {
+            BigRational r2(3, 4);
+            assert(r2 == BigRational("3", "4"));
+        }
+
+        {
+            BigRational r3(-10, -2);
+            assert(r3 == BigRational(5,1)); // -10 / -2 -> 10/2 -> до 5/1
+        }
+
+        {
+            BigRational r4(-10, 2);
+            assert(r4 == BigRational("-5","1")); // -10/2 -> -5/1
+        }
+
+        {
+            BigRational r5("12", "-8");
+            assert(r5 == BigRational("-3","2")); // 12 / -8 -> -3/2
+        }
+
+        {
+            BigRational r6("0", "3456");
+            assert(r6 == BigRational(0,1));
+        }
+
+        try {
+            BigRational bad(1, 0);
+            assert(false);
+        } catch(const std::invalid_argument& e) {
+        }
+
+        std::cout << "BigRational constructor tests passed!" << std::endl;
+    }
+
+    static void testBigRationalLogicalOperators()
+    {
+        std::cout << "Running BigRational logical operator tests..." << std::endl;
+
+        BigRational r1(1,2);     // 1/2
+        BigRational r2(2,4);     // 2/4 -> 1/2
+        BigRational r3(-3,4);    // -3/4
+        BigRational r4(3, -4);   // 3/-4 -> -3/4
+        BigRational r5(2,3);     // 2/3
+        BigRational zero(0,1);   // 0/1
+
+        assert(r1 == r2);
+        assert(r3 == r4);
+        assert(r3 != r5);
+
+        assert(r1 < r5);
+        assert(r3 < r1);
+        assert(r5 > r2);
+        assert(zero < r1);
+
+        assert(r1 <= r2);
+        assert(r1 <= r5);
+        assert(r5 >= r1);
+
+        std::cout << "BigRational logical operator tests passed!" << std::endl;
+    }
+
+};
