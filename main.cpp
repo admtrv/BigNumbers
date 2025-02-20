@@ -2,10 +2,10 @@
  * main.cpp
  */
 
-#include "tests.cpp"
+#include <gtest/gtest.h>
 
-int main()
+int main(int argc, char** argv)
 {
-    Tests::run();
-    return 0;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

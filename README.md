@@ -165,3 +165,12 @@ The `BigRational` class automatically reduces fractions to their simplest form u
 BigRational a(6, 4);
 std::сout << a << std::endl; // "3/2"
 ```
+
+## Dependencies
+
+This library, as a project, has been tested using Google Test (GTest), a C/C++ unit testing framework. To install it, run:
+
+```
+sudo apt-get install libgtest-dev
+```
+
