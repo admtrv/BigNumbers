@@ -525,6 +525,18 @@ private:
             {
                 "op":"+",
                 "left": 123,
+                "right": 456.001
+            }
+            )";
+            BigInteger result = eval(json);
+            assert(result == BigInteger(123 + 456));
+        }
+
+        {
+            std::string json = R"(
+            {
+                "op":"+",
+                "left": 123,
                 "right": {
                     "op":"*",
                     "left": "12345678901234567890",
@@ -532,6 +544,26 @@ private:
                         "op":"%",
                         "left":"34",
                         "right":1
+                    }
+                }
+            }
+            )";
+            BigInteger result = eval(json);
+            assert(result == BigInteger(123 + (12345678901234567890 * (34 % 1))));
+        }
+
+        {
+            std::string json = R"(
+            {
+                "op":" + ",
+                "left":  123  ,
+                "right": {
+                    "op":"    *",
+                    "left": "       12345678901234567890",
+                    "right": {
+                        "op":"%    ",
+                        "left":"34            ",
+                        "right":   1
                     }
                 }
             }
